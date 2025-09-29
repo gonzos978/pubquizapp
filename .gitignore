@@ -41,3 +41,12 @@ app-example
 # generated native folders
 /ios
 /android
+.idea/.gitignore
+.idea/modules.xml
+.idea/MyQuizApp.iml
+.idea/vcs.xml
+.idea/inspectionProfiles/Project_Default.xml
+app/App.tsx
+libs/sfs2x-api-1.8.4.d.ts
+libs/sfs2x-api-1.8.4.js
+libs/sfs2x-api-1.8.4.js.map
