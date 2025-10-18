@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { SFSEvent } from "@/libs/sfs2x-api-1.8.4";
 const SFS2X = require("../libs/sfs2x-api-1.8.4");
 
 export default function JoinScreen() {
@@ -31,8 +32,8 @@ export default function JoinScreen() {
             sfs.connect();
         };
 
-        // Connection events
-        sfs.addEventListener(SFS2X.SFSEvent.CONNECTION, (evt: any) => {
+        // --- Connection events ---
+        sfs.addEventListener(SFSEvent.CONNECTION, (evt: any) => {
             if (evt.success) {
                 setConnected(true);
                 setAttempts(0);
@@ -48,7 +49,7 @@ export default function JoinScreen() {
             }
         });
 
-        sfs.addEventListener(SFS2X.SFSEvent.CONNECTION_LOST, () => {
+        sfs.addEventListener(SFSEvent.CONNECTION_LOST, () => {
             setConnected(false);
             setJoined(false);
             setCurrentRoom(null);
@@ -62,16 +63,17 @@ export default function JoinScreen() {
             }
         });
 
-        sfs.addEventListener(SFS2X.SFSEvent.LOGIN, () => {
+        sfs.addEventListener(SFSEvent.LOGIN, () => {
             console.log("Login successful");
             joinRoom();
         });
 
-        sfs.addEventListener(SFS2X.SFSEvent.LOGIN_ERROR, (evt: any) => {
+        sfs.addEventListener(SFSEvent.LOGIN_ERROR, (evt: any) => {
             Alert.alert("Login Failed", evt.errorMessage);
         });
 
-        sfs.addEventListener(SFS2X.SFSEvent.ROOM_JOIN, (evt: any) => {
+        // --- Room join events ---
+        sfs.addEventListener(SFSEvent.ROOM_JOIN, (evt: any) => {
             setJoined(true);
             setCurrentRoom(evt.room.name);
             setUserCount(evt.room.userCount);
@@ -84,8 +86,36 @@ export default function JoinScreen() {
             });
         });
 
-        sfs.addEventListener(SFS2X.SFSEvent.USER_ENTER_ROOM, (evt: any) => setUserCount(evt.room.userCount));
-        sfs.addEventListener(SFS2X.SFSEvent.USER_EXIT_ROOM, (evt: any) => setUserCount(evt.room.userCount));
+        sfs.addEventListener(SFSEvent.USER_ENTER_ROOM, (evt: any) => setUserCount(evt.room.userCount));
+        sfs.addEventListener(SFSEvent.USER_EXIT_ROOM, (evt: any) => setUserCount(evt.room.userCount));
+
+        // --- Listen for quiz question broadcast ---
+        sfs.addEventListener(SFSEvent.PUBLIC_MESSAGE, (evt: any) => {
+            try {
+                const data = JSON.parse(evt.message);
+
+                if (data.type === "quizQuestion") {
+                    console.log("📩 Received question:", data);
+
+                    // Decide which screen to go to based on question format
+                    switch (data.format) {
+                        case "options":
+                            navigation.navigate("QuizOptions", { question: data });
+                            break;
+                        case "input":
+                            navigation.navigate("QuizInput", { question: data });
+                            break;
+                        case "yesno":
+                            navigation.navigate("QuizYesNo", { question: data });
+                            break;
+                        default:
+                            console.warn("Unknown quiz format:", data.format);
+                    }
+                }
+            } catch (err) {
+                console.log("Non-quiz message:", evt.message);
+            }
+        });
 
         connectToServer();
     };
@@ -102,6 +132,7 @@ export default function JoinScreen() {
             settings.maxUsers = 50;
             settings.isGame = true;
 
+            // Wait for room to be added, then join
             sfs.addEventListener(
                 SFS2X.SFSEvent.ROOM_ADD,
                 (evt: any) => {
