@@ -100,13 +100,13 @@ export default function JoinScreen() {
                     // Decide which screen to go to based on question format
                     switch (data.format) {
                         case "options":
-                            navigation.navigate("QuizOptions", { question: data });
+                            navigation.navigate("QuizOptions", { question: data, sfs:sfsRef.current });
                             break;
                         case "input":
-                            navigation.navigate("QuizInput", { question: data });
+                            navigation.navigate("QuizInput", { question: data, sfs:sfsRef.current });
                             break;
                         case "yesno":
-                            navigation.navigate("QuizYesNo", { question: data });
+                            navigation.navigate("QuizYesNo", { question: data, sfs:sfsRef.current });
                             break;
                         default:
                             console.warn("Unknown quiz format:", data.format);
@@ -160,7 +160,7 @@ export default function JoinScreen() {
                 </Text>
             </View>
 
-            <Text style={styles.title}>Join QuizSphere</Text>
+            <Text style={styles.title}>Join Quiz here</Text>
 
             <TextInput
                 style={styles.input}
