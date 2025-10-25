@@ -20,9 +20,11 @@ export default function QuizOptions({ route }: any) {
         if (answered) return; // stop timer if already answered
 
         const timer = setInterval(() => {
+            // @ts-ignore
             setTimeLeft(prev => {
                 if (prev <= 1) {
                     clearInterval(timer);
+                    // @ts-ignore
                     handleAnswer(null); // auto-send no answer when timer runs out
                     return 0;
                 }
@@ -58,7 +60,7 @@ export default function QuizOptions({ route }: any) {
             <View style={styles.topBar}>
                 <Text style={styles.topLeft}>⏱ {timeLeft}s</Text>
                 <Text style={styles.topCenter}>{question.category ?? "General"}</Text>
-                <Text style={styles.topRight}>Q {question.questionIndex + 1}/{question.totalQuestions}</Text>
+                <Text style={styles.topRight}>Q {question.index + 1}/{question.totalQuestions}</Text>
             </View>
 
             {/* Status Indicator */}

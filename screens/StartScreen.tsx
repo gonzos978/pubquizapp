@@ -30,10 +30,13 @@ export default function StartScreen() {
                     setGameStarted(true);
 
                     if (quizData.type === "yesno") {
+                        // @ts-ignore
                         navigation.navigate("QuizYesNo", { question: quizData.questionText });
                     } else if (quizData.type === "options") {
+                        // @ts-ignore
                         navigation.navigate("QuizOptions", { question: quizData.questionText, options: quizData.options });
                     } else if (quizData.type === "input") {
+                        // @ts-ignore
                         navigation.navigate("QuizInput", { question: quizData.questionText });
                     }
                 }else if(state === "NEXT_QUESTION"){
@@ -41,10 +44,13 @@ export default function StartScreen() {
                     const quizData = JSON.parse(rawData); // we serialize on send
 
                     if (quizData.type === "yesno") {
+                        // @ts-ignore
                         navigation.navigate("QuizYesNo", { question: quizData.questionText });
                     } else if (quizData.type === "options") {
+                        // @ts-ignore
                         navigation.navigate("QuizOptions", { question: quizData.questionText, options: quizData.options });
                     } else if (quizData.type === "input") {
+                        // @ts-ignore
                         navigation.navigate("QuizInput", { question: quizData.questionText });
                     }
 

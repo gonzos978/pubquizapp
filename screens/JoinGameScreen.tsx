@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SFSEvent } from "@/libs/sfs2x-api-1.8.4";
+
 const SFS2X = require("../libs/sfs2x-api-1.8.4");
 
 export default function JoinScreen() {
@@ -13,6 +14,10 @@ export default function JoinScreen() {
     const [userCount, setUserCount] = useState(0);
     const [attempts, setAttempts] = useState(0);
     const sfsRef = useRef<any>(null);
+
+    // Ref to hold RoundEnd update callback
+    // @ts-ignore
+    const roundEndCallbackRef = useRef<(answers: any[]) => void>();
 
     const roomName = "QuizRoom";
     const maxAttempts = 5;
@@ -32,7 +37,6 @@ export default function JoinScreen() {
             sfs.connect();
         };
 
-        // --- Connection events ---
         sfs.addEventListener(SFSEvent.CONNECTION, (evt: any) => {
             if (evt.success) {
                 setConnected(true);
@@ -72,44 +76,78 @@ export default function JoinScreen() {
             Alert.alert("Login Failed", evt.errorMessage);
         });
 
-        // --- Room join events ---
         sfs.addEventListener(SFSEvent.ROOM_JOIN, (evt: any) => {
             setJoined(true);
             setCurrentRoom(evt.room.name);
             setUserCount(evt.room.userCount);
-            console.log("Joined room:", evt.room.name);
+            //console.log("Joined room:", evt.room.name);
 
-            // Navigate to StartScreen with SFS reference
-            navigation.navigate("Start", {
-                sfs: sfsRef.current,
-                roomName: evt.room.name,
-            });
+            // Navigate to StartScreen
+            // Pass a callback ref for RoundEnd updates
+            // @ts-ignore
+            navigation.navigate("Start", { sfs: sfsRef.current, roomName: evt.room.name, roundEndCallbackRef });
         });
 
         sfs.addEventListener(SFSEvent.USER_ENTER_ROOM, (evt: any) => setUserCount(evt.room.userCount));
         sfs.addEventListener(SFSEvent.USER_EXIT_ROOM, (evt: any) => setUserCount(evt.room.userCount));
 
-        // --- Listen for quiz question broadcast ---
+        sfs.addEventListener(SFSEvent.PRIVATE_MESSAGE, (evt:any) => {
+            try {
+                console.log(evt.message);
+                const data = JSON.parse(evt.message);
+
+                console.log("📩 Private message received:", data);
+
+                try {
+                    const parsedResults =
+                        typeof data.results === "string" ? JSON.parse(data.results) : data.results;
+
+                    console.log("✅ Parsed results:", parsedResults);
+
+                    // Pass parsed array to RoundEnd
+                    roundEndCallbackRef.current?.(parsedResults);
+                } catch (err) {
+                    console.error("Failed to parse PlayerResults:", err);
+                }
+            } catch (err) {
+                console.error("Failed to parse private message:", err);
+            }
+        });
+
+
         sfs.addEventListener(SFSEvent.PUBLIC_MESSAGE, (evt: any) => {
             try {
                 const data = JSON.parse(evt.message);
-
+                console.log(data);
                 if (data.type === "quizQuestion") {
                     console.log("📩 Received question:", data);
-
-                    // Decide which screen to go to based on question format
                     switch (data.format) {
                         case "options":
-                            navigation.navigate("QuizOptions", { question: data, sfs:sfsRef.current });
+                            // @ts-ignore
+                            navigation.navigate("QuizOptions", { question: data, sfs: sfsRef.current });
                             break;
                         case "input":
-                            navigation.navigate("QuizInput", { question: data, sfs:sfsRef.current });
+                            // @ts-ignore
+                            navigation.navigate("QuizInput", { question: data, sfs: sfsRef.current });
                             break;
                         case "yesno":
-                            navigation.navigate("QuizYesNo", { question: data, sfs:sfsRef.current });
+                            // @ts-ignore
+                            navigation.navigate("QuizYesNo", { question: data, sfs: sfsRef.current });
                             break;
                         default:
                             console.warn("Unknown quiz format:", data.format);
+                    }
+                } else if (data.type === "ROUND_END") {
+                    // @ts-ignore
+                    navigation.navigate("RoundEnd", {
+                        sfs: sfsRef.current,
+                        playerId: sfs.mySelf.name,
+                        onPlayerResult: (cb: any) => (roundEndCallbackRef.current = cb),
+                    });
+                } else if (data.type === "PLAYER_RESULT") {
+                    // Update RoundEnd if callback exists
+                    if (roundEndCallbackRef.current && data.playerId === sfs.mySelf.name) {
+                        roundEndCallbackRef.current(data.answers);
                     }
                 }
             } catch (err) {
@@ -132,7 +170,6 @@ export default function JoinScreen() {
             settings.maxUsers = 50;
             settings.isGame = true;
 
-            // Wait for room to be added, then join
             sfs.addEventListener(
                 SFS2X.SFSEvent.ROOM_ADD,
                 (evt: any) => {
@@ -152,7 +189,6 @@ export default function JoinScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Status indicator */}
             <View style={styles.statusContainer}>
                 <View style={[styles.statusDot, { backgroundColor: connected ? "green" : "red" }]} />
                 <Text style={styles.statusText}>

@@ -7,6 +7,7 @@ import StartScreen from "./screens/StartScreen";
 import QuizOptions from "./screens/QuizOptions";
 import QuizInput from "./screens/QuizInput";
 import QuizYesNo from "./screens/QuizYesNo";
+import RoundEnd from "./screens/RoundEnd";
 
 
 const Stack = createNativeStackNavigator();
@@ -20,6 +21,7 @@ export default function App() {
                 <Stack.Screen name="QuizOptions" component={QuizOptions} />
                 <Stack.Screen name="QuizInput" component={QuizInput} />
                 <Stack.Screen name="QuizYesNo" component={QuizYesNo} />
+                <Stack.Screen name="RoundEnd" component={RoundEnd} />
             </Stack.Navigator>
         </NavigationContainer>
     );
