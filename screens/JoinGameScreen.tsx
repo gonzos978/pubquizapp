@@ -28,7 +28,7 @@ export default function JoinScreen() {
             return;
         }
 
-        const config = { host: "192.168.1.4", port: 8080, zone: "BasicExamples", debug: true };
+        const config = { host: "192.168.1.6", port: 8080, zone: "BasicExamples", debug: true };
         const sfs = new SFS2X.SmartFox(config);
         sfsRef.current = sfs;
 
@@ -135,11 +135,20 @@ export default function JoinScreen() {
                             navigation.navigate("QuizYesNo", { question: data, sfs: sfsRef.current });
                             break;
                         case "matching":
-                            console.log("PLLS NAVIGATE....")
+
                             // @ts-ignore
                             navigation.navigate("QuizMatching", { data: data, question: data.question,
                                 leftItems: data.leftItems,
                                 rightItems: data.rightItems, sfs: sfsRef.current });
+                            break;
+                        case "anagram":
+                            console.log("PLLS NAVIGATE....")
+                            // @ts-ignore
+                            navigation.navigate("QuizAnagram", {
+                                question: data,
+                                sfs: sfsRef.current,
+                                mediaUrl: data.mediaUrl // optional, if your anagram question has media
+                            });
                             break;
                         default:
                             console.warn("Unknown quiz format:", data.format);
