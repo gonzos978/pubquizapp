@@ -118,10 +118,10 @@ export default function JoinScreen() {
         sfs.addEventListener(SFSEvent.PUBLIC_MESSAGE, (evt: any) => {
             try {
                 const data = JSON.parse(evt.message);
-                console.log(data);
+                console.log("FOO: ", data);
                 if (data.type === "quizQuestion") {
-                    console.log("📩 Received question:", data);
-                    switch (data.format) {
+                    console.log("📩 Received question:", data.questionType);
+                    switch (data.questionType) {
                         case "options":
                             // @ts-ignore
                             navigation.navigate("QuizOptions", { question: data, sfs: sfsRef.current });
@@ -133,6 +133,13 @@ export default function JoinScreen() {
                         case "yesno":
                             // @ts-ignore
                             navigation.navigate("QuizYesNo", { question: data, sfs: sfsRef.current });
+                            break;
+                        case "matching":
+                            console.log("PLLS NAVIGATE....")
+                            // @ts-ignore
+                            navigation.navigate("QuizMatching", { data: data, question: data.question,
+                                leftItems: data.leftItems,
+                                rightItems: data.rightItems, sfs: sfsRef.current });
                             break;
                         default:
                             console.warn("Unknown quiz format:", data.format);

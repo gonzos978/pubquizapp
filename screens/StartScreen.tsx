@@ -25,7 +25,7 @@ export default function StartScreen() {
                     const rawData = data.getUtfString("data");
                     const quizData = JSON.parse(rawData); // we serialize on send
 
-                    console.log("Quiz Data:", quizData);
+                    //console.log("Quiz Data:", quizData);
 
                     setGameStarted(true);
 
@@ -56,7 +56,7 @@ export default function StartScreen() {
 
                 }
             } else {
-                console.log("Received plain message:", message);
+                //console.log("Received plain message:", message);
             }
         };
 
