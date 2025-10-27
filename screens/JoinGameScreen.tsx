@@ -150,6 +150,15 @@ export default function JoinScreen() {
                                 mediaUrl: data.mediaUrl // optional, if your anagram question has media
                             });
                             break;
+                        case "associations":
+
+                            // @ts-ignore
+                            navigation.navigate("QuizAssociations", {
+                                question: data,
+                                sfs: sfsRef.current,
+                                mediaUrl: data.mediaUrl // optional, if your anagram question has media
+                            });
+                            break;
                         default:
                             console.warn("Unknown quiz format:", data.format);
                     }
