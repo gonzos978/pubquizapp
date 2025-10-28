@@ -69,6 +69,7 @@ export default function QuizAssociations({route}: any) {
             finalAnswer: finalAnswer.trim(),                  // combined/final answer
             correctColumnAnswers: question.associations?.map((a: any) => a.correctAnswer) ?? [],
             correctFinalAnswer: question.associationFinalAnswer ?? "",
+            pointsToAward: question.pointsToAward,
         };
 
         sfs.send(new PublicMessageRequest(JSON.stringify(answerData)));

@@ -65,7 +65,8 @@ export default function QuizInput({route}: any) {
             teamName: sfs.mySelf.name,
             timeTaken: answerTime,
             answer: playerAnswer.trim(),
-            correctAnswer: question?.correctAnswer ?? ""
+            correctAnswer: question?.scrambledAnswer ?? "",
+            pointsToAward: question.pointsToAward,
         };
 
         sfs.send(new PublicMessageRequest(JSON.stringify(answerData)));
