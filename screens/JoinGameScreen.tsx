@@ -122,11 +122,11 @@ export default function JoinScreen() {
                 if (data.type === "quizQuestion") {
                     console.log("📩 Received question:", data.questionType);
                     switch (data.questionType) {
-                        case "options":
+                        case "multiple":
                             // @ts-ignore
                             navigation.navigate("QuizOptions", { question: data, sfs: sfsRef.current });
                             break;
-                        case "input":
+                        case "write":
                             // @ts-ignore
                             navigation.navigate("QuizInput", { question: data, sfs: sfsRef.current });
                             break;
@@ -142,7 +142,6 @@ export default function JoinScreen() {
                                 rightItems: data.rightItems, sfs: sfsRef.current });
                             break;
                         case "anagram":
-                            console.log("PLLS NAVIGATE....")
                             // @ts-ignore
                             navigation.navigate("QuizAnagram", {
                                 question: data,
@@ -160,7 +159,7 @@ export default function JoinScreen() {
                             });
                             break;
                         default:
-                            console.warn("Unknown quiz format:", data.format);
+                            console.warn("Unknown quiz format:", data.questionType);
                     }
                 } else if (data.type === "ROUND_END") {
                     // @ts-ignore

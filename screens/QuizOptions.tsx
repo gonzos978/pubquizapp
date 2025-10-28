@@ -43,11 +43,13 @@ export default function QuizOptions({ route }: any) {
         const answerData = {
             type: "PlayerAnswer",
             questionIndex: question.index,
+            questionType: "multiple",
             answer: opt ?? "", // empty if auto timeout
             teamName: sfs.mySelf.name,
             timeTaken: answerTime,
             correctAnswer: question.correctAnswer,
-            playerAnswer:buttonIndex// <-- send time here
+            playerAnswer:buttonIndex,
+            pointsToAward: question.pointsToAward,
         };
 
         sfs.send(new PublicMessageRequest(JSON.stringify(answerData)));

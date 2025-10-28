@@ -1,30 +1,49 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image, KeyboardAvoidingView, Platform } from "react-native";
-import { PublicMessageRequest } from "@/libs/sfs2x-api-1.8.4";
+import React, {useEffect, useState} from "react";
+import {
+    Text,
+    TextInput,
+    TouchableOpacity,
+    StyleSheet,
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform,
+    View, Image
+} from "react-native";
+import {PublicMessageRequest} from "@/libs/sfs2x-api-1.8.4";
+import {useNavigation} from "@react-navigation/native";
 
-export default function QuizAnagram({ route }: any) {
-    const { question, sfs, mediaUrl } = route.params;
+export default function QuizInput({route}: any) {
+    const {question, sfs, mediaUrl} = route.params;
 
-    const [timeLeft, setTimeLeft] = useState(question.timer ?? 0);
+    const navigation = useNavigation();
+
+    const [timeLeft, setTimeLeft] = useState(question?.timer ?? 30);
     const [answered, setAnswered] = useState(false);
     const [startTime, setStartTime] = useState(Date.now());
     const [playerAnswer, setPlayerAnswer] = useState("");
 
     useEffect(() => {
+
+        navigation.setOptions({
+            headerBackVisible: false, // v6+
+            // headerLeft: () => null, // fallback for older versions
+        });
         setAnswered(false);
-        setTimeLeft(question.timer ?? 30);
+        setTimeLeft(question?.timer ?? 30);
         setStartTime(Date.now());
         setPlayerAnswer("");
     }, [question]);
 
     useEffect(() => {
-        if (answered) return; // stop timer if answered
+        if (answered) return;
 
         const timer = setInterval(() => {
+
+            // @ts-ignore
             setTimeLeft(prev => {
                 if (prev <= 1) {
                     clearInterval(timer);
-                    handleAnswer(""); // auto-send empty answer when timer runs out
+                    handleSubmit();
                     return 0;
                 }
                 return prev - 1;
@@ -34,31 +53,29 @@ export default function QuizAnagram({ route }: any) {
         return () => clearInterval(timer);
     }, [answered]);
 
-    const handleAnswer = (answer: string) => {
+    const handleSubmit = () => {
         if (!sfs || answered) return;
 
-        const answerTime = Math.floor((Date.now() - startTime) / 1000); // seconds elapsed
+        const answerTime = Math.floor((Date.now() - startTime) / 1000);
 
         const answerData = {
             type: "PlayerAnswer",
-            questionType: question.questionType,
-            questionIndex: question.index,
-            answer: answer.trim(),               // what the player typed
+            questionType: "write",
+            questionIndex: question?.index ?? 0,
             teamName: sfs.mySelf.name,
-            timeTaken: answerTime,               // seconds elapsed
-            correctAnswer: question.scrambledAnswer, // the correct solution
-            scrambledWord: question.scrambledWord, // the scrambled version shown
-            playerAnswer: answer.trim(),         // optional, can mirror 'answer' if needed
+            timeTaken: answerTime,
+            answer: playerAnswer.trim(),
+            correctAnswer: question?.correctAnswer ?? ""
         };
 
-
         sfs.send(new PublicMessageRequest(JSON.stringify(answerData)));
-        setAnswered(true); // disable input
+        setAnswered(true);
     };
 
     return (
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === "ios" ? "padding" : undefined}>
             <ScrollView contentContainerStyle={styles.container}>
+
                 {/* Top Info Bar */}
                 <View style={styles.topBar}>
                     <Text style={styles.topLeft}>⏱ {timeLeft}s</Text>
@@ -68,42 +85,36 @@ export default function QuizAnagram({ route }: any) {
 
                 {/* Status Indicator */}
                 <View style={styles.statusContainer}>
-                    <View style={[styles.statusDot, { backgroundColor: "green" }]} />
+                    <View style={[styles.statusDot, {backgroundColor: "green"}]}/>
                     <Text style={styles.statusText}>Connected</Text>
                 </View>
 
-                {/* Question */}
-                <Text style={styles.title}>{question.question}</Text>
+                <Text style={styles.title}>{question?.question}</Text>
 
-                {/* Scrambled Word */}
-                <Text style={styles.scrambledWord}>{question.scrambledWord}</Text>
 
                 {/* Media or Spacer */}
                 {mediaUrl ? (
-                    <Image source={{ uri: mediaUrl }} style={styles.media} resizeMode="contain" />
+                    <Image source={{ uri: question.mediaUrl }} style={styles.media} resizeMode="contain" />
                 ) : (
                     <View style={styles.spacer} />
                 )}
 
-                {/* Input for Anagram Answer */}
                 <TextInput
-                    style={[styles.input, answered && { backgroundColor: "#ddd" }]}
+                    style={[styles.input, answered && {backgroundColor: "#ddd"}]}
                     placeholder="Type your answer here"
                     value={playerAnswer}
                     editable={!answered}
                     onChangeText={setPlayerAnswer}
-                    autoCapitalize="none"
-                    autoCorrect={false}
                 />
 
-                {/* Submit Button */}
                 <TouchableOpacity
-                    style={[styles.submitButton, answered && { backgroundColor: "#999" }]}
+                    style={[styles.submitButton, answered && {backgroundColor: "#999"}]}
                     disabled={answered || playerAnswer.trim() === ""}
-                    onPress={() => handleAnswer(playerAnswer)}
+                    onPress={handleSubmit}
                 >
                     <Text style={styles.submitText}>Submit Answer</Text>
                 </TouchableOpacity>
+
             </ScrollView>
         </KeyboardAvoidingView>
     );
@@ -111,18 +122,16 @@ export default function QuizAnagram({ route }: any) {
 
 const styles = StyleSheet.create({
     container: {
-        flexGrow: 1,
+        flex: 1,
         paddingHorizontal: 16,
         paddingTop: 16,
         backgroundColor: "#f5f5f5",
-        alignItems: "center",
     },
     topBar: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         marginBottom: 12,
-        width: "100%",
         paddingHorizontal: 8,
     },
     topLeft: { fontSize: 16, fontWeight: "bold", textAlign: "left" },
@@ -147,43 +156,35 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginVertical: 16,
     },
-    scrambledWord: {
-        fontSize: 28,
-        fontWeight: "bold",
-        letterSpacing: 0.3,
-        marginBottom: 20,
-        textAlign: "center",
-    },
     media: {
         width: "100%",
         height: 220,
         borderRadius: 12,
         marginBottom: 20,
     },
-    spacer: { height: 180, marginBottom: 20 },
+    spacer: {
+        height: 180, // pushes options down when no image
+        marginBottom: 20,
+    },
     input: {
         width: "100%",
         borderWidth: 1,
         borderColor: "#ccc",
         borderRadius: 8,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        fontSize: 18,
-        marginBottom: 16,
+        padding: 12,
+        fontSize: 16,
         backgroundColor: "#fff",
+        marginBottom: 16
     },
     submitButton: {
         backgroundColor: "#2196f3",
         paddingVertical: 14,
         paddingHorizontal: 16,
         borderRadius: 8,
-        marginBottom: 20,
         width: "100%",
         alignItems: "center",
+        marginBottom: 12
     },
-    submitText: {
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: "bold",
-    },
+    submitText: {color: "#fff", fontSize: 16, fontWeight: "bold"},
+    timer: {fontSize: 16, fontWeight: "bold", marginTop: 10},
 });

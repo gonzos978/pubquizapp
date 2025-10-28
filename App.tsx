@@ -19,15 +19,15 @@ export default function App() {
     return (
         <NavigationContainer>
             <Stack.Navigator initialRouteName="Join">
-                <Stack.Screen name="Join" component={JoinScreen} />
+                <Stack.Screen name="Join" component={JoinScreen} options={{ headerBackVisible: false }}/>
                 <Stack.Screen name="Start" component={StartScreen} />
-                <Stack.Screen name="QuizOptions" component={QuizOptions} />
-                <Stack.Screen name="QuizInput" component={QuizInput} />
-                <Stack.Screen name="QuizYesNo" component={QuizYesNo} />
-                <Stack.Screen name="RoundEnd" component={RoundEnd} />
-                <Stack.Screen name="QuizMatching" component={QuizMatching} />
-                <Stack.Screen name="QuizAnagram" component={QuizAnagram} />
-                <Stack.Screen name="QuizAssociations" component={QuizAssociations} />
+                <Stack.Screen name="QuizOptions" component={QuizOptions} options={{ headerShown: false }}/>
+                <Stack.Screen name="QuizInput" component={QuizInput} options={{ headerShown: false }}/>
+                <Stack.Screen name="QuizYesNo" component={QuizYesNo} options={{ headerShown: false }}/>
+                <Stack.Screen name="RoundEnd" component={RoundEnd} options={{ headerShown: false }}/>
+                <Stack.Screen name="QuizMatching" component={QuizMatching} options={{ headerShown: false }}/>
+                <Stack.Screen name="QuizAnagram" component={QuizAnagram} options={{ headerShown: false }}/>
+                <Stack.Screen name="QuizAssociations" component={QuizAssociations} options={{ headerShown: false }}/>
             </Stack.Navigator>
         </NavigationContainer>
     );
