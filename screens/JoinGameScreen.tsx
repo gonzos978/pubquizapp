@@ -1,7 +1,7 @@
-import React, { useState, useRef } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { SFSEvent } from "@/libs/sfs2x-api-1.8.4";
+import React, {useState, useRef} from "react";
+import {View, Text, TextInput, Button, StyleSheet, Alert} from "react-native";
+import {useNavigation} from "@react-navigation/native";
+import {SFSEvent} from "@/libs/sfs2x-api-1.8.4";
 
 const SFS2X = require("../libs/sfs2x-api-1.8.4");
 
@@ -15,6 +15,7 @@ export default function JoinScreen() {
     const [attempts, setAttempts] = useState(0);
     const sfsRef = useRef<any>(null);
 
+    const quizPauseControlRef = useRef<{ pauseTimer: () => void; resumeTimer: () => void } | null>(null);
     // Ref to hold RoundEnd update callback
     // @ts-ignore
     const roundEndCallbackRef = useRef<(answers: any[]) => void>();
@@ -28,7 +29,7 @@ export default function JoinScreen() {
             return;
         }
 
-        const config = { host: "192.168.1.6", port: 8080, zone: "BasicExamples", debug: true };
+        const config = {host: "192.168.1.6", port: 8080, zone: "BasicExamples", debug: true};
         const sfs = new SFS2X.SmartFox(config);
         sfsRef.current = sfs;
 
@@ -85,13 +86,13 @@ export default function JoinScreen() {
             // Navigate to StartScreen
             // Pass a callback ref for RoundEnd updates
             // @ts-ignore
-            navigation.navigate("Start", { sfs: sfsRef.current, roomName: evt.room.name, roundEndCallbackRef });
+            navigation.navigate("Start", {sfs: sfsRef.current, roomName: evt.room.name, roundEndCallbackRef});
         });
 
         sfs.addEventListener(SFSEvent.USER_ENTER_ROOM, (evt: any) => setUserCount(evt.room.userCount));
         sfs.addEventListener(SFSEvent.USER_EXIT_ROOM, (evt: any) => setUserCount(evt.room.userCount));
 
-        sfs.addEventListener(SFSEvent.PRIVATE_MESSAGE, (evt:any) => {
+        sfs.addEventListener(SFSEvent.PRIVATE_MESSAGE, (evt: any) => {
             try {
                 console.log(evt.message);
                 const data = JSON.parse(evt.message);
@@ -124,22 +125,25 @@ export default function JoinScreen() {
                     switch (data.questionType) {
                         case "multiple":
                             // @ts-ignore
-                            navigation.navigate("QuizOptions", { question: data, sfs: sfsRef.current });
+                            navigation.navigate("QuizOptions", {question: data, sfs: sfsRef.current});
                             break;
                         case "write":
                             // @ts-ignore
-                            navigation.navigate("QuizInput", { question: data, sfs: sfsRef.current });
+                            navigation.navigate("QuizInput", {question: data, sfs: sfsRef.current});
                             break;
                         case "yesno":
                             // @ts-ignore
-                            navigation.navigate("QuizYesNo", { question: data, sfs: sfsRef.current });
+                            navigation.navigate("QuizYesNo", {question: data, sfs: sfsRef.current});
                             break;
                         case "matching":
 
                             // @ts-ignore
-                            navigation.navigate("QuizMatching", { data: data, question: data.question,
+                            navigation.navigate("QuizMatching", {
+                                data: data, question: data.question,
                                 leftItems: data.leftItems,
-                                rightItems: data.rightItems, sfs: sfsRef.current });
+                                rightItems: data.rightItems, sfs: sfsRef.current,
+                                setPauseControl: (control: any) => { quizPauseControlRef.current = control; },
+                            });
                             break;
                         case "anagram":
                             // @ts-ignore
@@ -173,6 +177,11 @@ export default function JoinScreen() {
                     if (roundEndCallbackRef.current && data.playerId === sfs.mySelf.name) {
                         roundEndCallbackRef.current(data.answers);
                     }
+                } else if (data.type === "PAUSE") {
+                    quizPauseControlRef.current?.pauseTimer();
+                } else if (data.type === "RESUME_PAUSE") {
+                    quizPauseControlRef.current?.resumeTimer();
+
                 }
             } catch (err) {
                 console.log("Non-quiz message:", evt.message);
@@ -201,7 +210,7 @@ export default function JoinScreen() {
                         sfs.send(new SFS2X.JoinRoomRequest(roomName));
                     }
                 },
-                { once: true }
+                {once: true}
             );
 
             sfs.send(new SFS2X.CreateRoomRequest(settings, true));
@@ -214,7 +223,7 @@ export default function JoinScreen() {
     return (
         <View style={styles.container}>
             <View style={styles.statusContainer}>
-                <View style={[styles.statusDot, { backgroundColor: connected ? "green" : "red" }]} />
+                <View style={[styles.statusDot, {backgroundColor: connected ? "green" : "red"}]}/>
                 <Text style={styles.statusText}>
                     {connected ? (joined ? `${currentRoom} (${userCount} users)` : "Connected") : "Disconnected"}
                 </Text>
@@ -229,16 +238,16 @@ export default function JoinScreen() {
                 onChangeText={setTeamName}
             />
 
-            <Button title="Connect & Join" onPress={handleConnect} disabled={connected || joined} />
+            <Button title="Connect & Join" onPress={handleConnect} disabled={connected || joined}/>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
-    title: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
-    input: { width: "100%", borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 8, marginBottom: 15 },
-    statusContainer: { position: "absolute", top: 40, right: 20, flexDirection: "row", alignItems: "center" },
-    statusDot: { width: 12, height: 12, borderRadius: 6, marginRight: 8 },
-    statusText: { fontSize: 14, fontWeight: "bold" },
+    container: {flex: 1, justifyContent: "center", alignItems: "center", padding: 20},
+    title: {fontSize: 24, fontWeight: "bold", marginBottom: 20},
+    input: {width: "100%", borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 8, marginBottom: 15},
+    statusContainer: {position: "absolute", top: 40, right: 20, flexDirection: "row", alignItems: "center"},
+    statusDot: {width: 12, height: 12, borderRadius: 6, marginRight: 8},
+    statusText: {fontSize: 14, fontWeight: "bold"},
 });
